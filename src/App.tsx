@@ -243,13 +243,13 @@ function App() {
             </div>
 
             {filterError && (
-              <p className="mb-4 rounded-lg border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3 text-sm text-amber-200">
+              <p className="mb-4 rounded-lg border border-amber-400/20 bg-amber-400/6 px-4 py-3 text-sm text-amber-200">
                 {filterError}
               </p>
             )}
 
             {error ? (
-              <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] px-6 py-12 text-center">
+              <div className="rounded-2xl border border-red-400/20 bg-red-400/6 px-6 py-12 text-center">
                 <p className="font-semibold text-white">
                   We couldn’t load the games
                 </p>
