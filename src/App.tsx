@@ -40,37 +40,48 @@ function App() {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    // execute search input after 350ms delay
     const timeout = window.setTimeout(() => {
       setSearch(searchInput.trim());
       setPage(1);
     }, 350);
 
+    // clearing the timer
     return () => window.clearTimeout(timeout);
   }, [searchInput]);
 
   useEffect(() => {
+    // step 1: cancel all previous incomplete requests
     const controller = new AbortController();
 
-    Promise.allSettled([getGenres(), getPlatforms()]).then((results) => {
-      if (controller.signal.aborted) {
-        return;
-      }
+    // send multiple requests
+    Promise.allSettled([
+      getGenres(controller.signal),
+      getPlatforms(controller.signal),
+    ]).then((results) => {
+      // step 2: cancel all previous incomplete requests
+      if (controller.signal.aborted) return;
 
       const [genreResult, platformResult] = results;
       const errors: string[] = [];
 
       if (genreResult.status === "fulfilled") {
+        // success: genres
         setGenres(genreResult.value.results);
       } else {
+        // failure: genres
         errors.push("genres");
       }
 
       if (platformResult.status === "fulfilled") {
+        // success: platforms
         setPlatforms(platformResult.value.results);
       } else {
+        // failure: platforms
         errors.push("platforms");
       }
 
+      // manage and display error when genre and platform collections couldn't be loading
       setFilterError(
         errors.length > 0
           ? `Could not load ${errors.join(" and ")}. You can still browse games.`
@@ -78,18 +89,23 @@ function App() {
       );
     });
 
+    // step 3: cancel all previous incomplete requests
     return () => controller.abort();
   }, [reloadKey]);
 
   useEffect(() => {
+    // step 1: cancel all previous incomplete requests
     const controller = new AbortController();
+
     void Promise.resolve().then(() => {
-      if (controller.signal.aborted) {
-        return;
-      }
+      // step 2: cancel all previous incomplete requests
+      if (controller.signal.aborted) return;
+
+      // display loading
       setLoading(true);
       setError("");
 
+      // send request to get games
       return getGames(
         {
           page,
@@ -102,36 +118,45 @@ function App() {
         controller.signal,
       )
         .then((response) => {
+          // success
           setGames(response.results);
           setTotalCount(response.count);
         })
         .catch((requestError: unknown) => {
+          // failure
           if (
             requestError instanceof DOMException &&
             requestError.name === "AbortError"
           ) {
             return;
           }
+
           setError(
             requestError instanceof Error
               ? requestError.message
               : "Something went wrong while loading games.",
           );
+
           setGames([]);
           setTotalCount(0);
         })
         .finally(() => {
+          // turn off loading
           if (!controller.signal.aborted) {
             setLoading(false);
           }
         });
     });
 
+    // step 3: cancel all previous incomplete requests
     return () => controller.abort();
   }, [page, search, selectedGenre, selectedPlatform, ordering, reloadKey]);
 
+  // pagination total pages
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  // from 1 - 13 - 25 - ...
   const firstResult = totalCount === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  // till 12 - 24 - 37 - ...
   const lastResult = Math.min(page * PAGE_SIZE, totalCount);
 
   function clearFilters() {
@@ -205,6 +230,8 @@ function App() {
             <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
                 <h2 className="text-lg font-bold text-white">All games</h2>
+
+                {/* new component */}
                 <p aria-live="polite" className="mt-1 text-xs text-slate-500">
                   {loading
                     ? "Finding games..."
@@ -212,10 +239,12 @@ function App() {
                       ? `Showing ${firstResult}–${lastResult} of ${totalCount.toLocaleString()} games`
                       : "No games to show"}
                 </p>
+                {/* /new component */}
               </div>
 
               <label className="relative flex h-10 min-w-52 items-center rounded-lg border border-white/10 bg-[#151820] pl-3 pr-9 text-xs text-slate-400 focus-within:border-violet-400/60">
                 <span className="mr-2 shrink-0">Sort by</span>
+                {/* new component */}
                 <select
                   aria-label="Sort games"
                   className="h-full min-w-0 flex-1 appearance-none bg-transparent text-xs font-semibold text-slate-200 outline-none"
@@ -235,6 +264,7 @@ function App() {
                     </option>
                   ))}
                 </select>
+                {/* /new component */}
                 <RiArrowDownSLine
                   aria-hidden="true"
                   className="pointer-events-none absolute right-3 size-4"
@@ -264,6 +294,7 @@ function App() {
                 </button>
               </div>
             ) : loading ? (
+              // skeleton loading
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }, (_, index) => (
                   <div
@@ -279,7 +310,8 @@ function App() {
                   </div>
                 ))}
               </div>
-            ) : games.length > 0 ? (
+            ) : // skeleton loading
+            games.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {games.map((game) => (
                   <GameCard game={game} key={game.id} />
@@ -320,6 +352,7 @@ function App() {
           </section>
         </div>
       </main>
+
       <footer className="border-t border-white/6 py-6 text-center text-xs text-slate-600">
         Discover something great to play.
       </footer>
