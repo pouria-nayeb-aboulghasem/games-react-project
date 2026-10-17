@@ -167,7 +167,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#0e1016] text-slate-100">
-      <header className="border-b border-white/[0.07] bg-[#11131a]">
+      <header className="border-b border-white/7 bg-[#11131a]">
         <div className="mx-auto flex h-18 max-w-360 items-center justify-between px-5 sm:px-8">
           <a
             className="flex items-center gap-2.5"
