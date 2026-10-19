@@ -226,6 +226,7 @@ function App() {
             selectedPlatform={selectedPlatform}
           />
 
+          {/* game  */}
           <section aria-label="Games">
             <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
@@ -350,6 +351,7 @@ function App() {
               />
             )}
           </section>
+          {/* /game  */}
         </div>
       </main>
 

@@ -24,6 +24,7 @@ function FilterPanel({
 
   return (
     <aside className="rounded-2xl border border-white/8 bg-[#151820] p-5">
+      {/* reset filters */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-white">Filters</h2>
         {hasFilters && (
@@ -37,8 +38,10 @@ function FilterPanel({
           </button>
         )}
       </div>
+      {/* /reset filters */}
 
       <div className="space-y-6">
+        {/* genre dropdown */}
         <label className="block">
           <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
             <RiGamepadLine
@@ -60,7 +63,9 @@ function FilterPanel({
             ))}
           </select>
         </label>
+        {/* /genre dropdown */}
 
+        {/* platform dropdown */}
         <label className="block">
           <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
             <RiWindowsLine
@@ -82,6 +87,8 @@ function FilterPanel({
             ))}
           </select>
         </label>
+
+        {/* /platform dropdown */}
       </div>
     </aside>
   );
