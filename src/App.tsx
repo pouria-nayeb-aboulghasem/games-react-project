@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
 import { RiArrowDownSLine } from "@remixicon/react";
 import FilterPanel from "@/components/FilterPanel";
 import GameCard from "@/components/GameCard";
+import useGames from "@/hooks/useGames";
+import useGenres from "@/hooks/useGenres";
+import usePlatforms from "@/hooks/usePlatforms";
 import Pagination from "@/components/Pagination";
-import { getGames } from "@/services/gamesService";
-import { getGenres } from "@/services/genresService";
-import { getPlatforms } from "@/services/platformService";
-import type { Game, Genre, Platform } from "@/types";
 import Header from "./components/Header";
 import TopBar from "./components/TopBar";
 import StatusBar from "./components/StatusBar";
@@ -15,8 +13,6 @@ import ErrorMessage from "./components/ErrorMessage";
 import Skeleton from "./components/Skeleton";
 import Refresh from "./components/Refresh";
 import Footer from "./components/Footer";
-
-const PAGE_SIZE = 12;
 
 const sortOptions = [
   { label: "Popularity", value: "" },
@@ -27,146 +23,40 @@ const sortOptions = [
 ];
 
 function App() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [platforms, setPlatforms] = useState<Platform[]>([]);
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("");
-  const [selectedPlatform, setSelectedPlatform] = useState("");
-  const [ordering, setOrdering] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [filterError, setFilterError] = useState("");
-  const [reloadKey, setReloadKey] = useState(0);
+  const {
+    games,
+    searchInput,
+    setSearchInput,
+    selectedGenre,
+    selectedPlatform,
+    ordering,
+    page,
+    setPage,
+    totalCount,
+    totalPages,
+    firstResult,
+    lastResult,
+    loading,
+    error,
+    reloadKey,
+    handleGenreChange,
+    handlePlatformChange,
+    handleOrderingChange,
+    clearFilters,
+    clearSearchAndFilters,
+    retry,
+  } = useGames();
+  const { genres, hasError: genresError } = useGenres(reloadKey);
+  const { platforms, hasError: platformsError } = usePlatforms(reloadKey);
 
-  useEffect(() => {
-    // execute search input after 350ms delay
-    const timeout = window.setTimeout(() => {
-      setSearch(searchInput.trim());
-      setPage(1);
-    }, 350);
-
-    // clearing the timer
-    return () => window.clearTimeout(timeout);
-  }, [searchInput]);
-
-  useEffect(() => {
-    // step 1: cancel all previous incomplete requests
-    const controller = new AbortController();
-
-    // send multiple requests
-    Promise.allSettled([
-      getGenres(controller.signal),
-      getPlatforms(controller.signal),
-    ]).then((results) => {
-      // step 2: cancel all previous incomplete requests
-      if (controller.signal.aborted) return;
-
-      const [genreResult, platformResult] = results;
-      const errors: string[] = [];
-
-      if (genreResult.status === "fulfilled") {
-        // success: genres
-        setGenres(genreResult.value.results);
-      } else {
-        // failure: genres
-        errors.push("genres");
-      }
-
-      if (platformResult.status === "fulfilled") {
-        // success: platforms
-        setPlatforms(platformResult.value.results);
-      } else {
-        // failure: platforms
-        errors.push("platforms");
-      }
-
-      // manage and display error when genre and platform collections couldn't be loading
-      setFilterError(
-        errors.length > 0
-          ? `Could not load ${errors.join(" and ")}. You can still browse games.`
-          : "",
-      );
-    });
-
-    // step 3: cancel all previous incomplete requests
-    return () => controller.abort();
-  }, [reloadKey]);
-
-  useEffect(() => {
-    // step 1: cancel all previous incomplete requests
-    const controller = new AbortController();
-
-    void Promise.resolve().then(() => {
-      // step 2: cancel all previous incomplete requests
-      if (controller.signal.aborted) return;
-
-      // display loading
-      setLoading(true);
-      setError("");
-
-      // send request to get games
-      return getGames(
-        {
-          page,
-          pageSize: PAGE_SIZE,
-          search,
-          genres: selectedGenre,
-          platforms: selectedPlatform,
-          ordering,
-        },
-        controller.signal,
-      )
-        .then((response) => {
-          // success
-          setGames(response.results);
-          setTotalCount(response.count);
-        })
-        .catch((requestError: unknown) => {
-          // failure
-          if (
-            requestError instanceof DOMException &&
-            requestError.name === "AbortError"
-          ) {
-            return;
-          }
-
-          setError(
-            requestError instanceof Error
-              ? requestError.message
-              : "Something went wrong while loading games.",
-          );
-
-          setGames([]);
-          setTotalCount(0);
-        })
-        .finally(() => {
-          // turn off loading
-          if (!controller.signal.aborted) {
-            setLoading(false);
-          }
-        });
-    });
-
-    // step 3: cancel all previous incomplete requests
-    return () => controller.abort();
-  }, [page, search, selectedGenre, selectedPlatform, ordering, reloadKey]);
-
-  // pagination total pages
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  // from 1 - 13 - 26 - ...
-  const firstResult = totalCount === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  // till 12 - 25 - 36 - ...
-  const lastResult = Math.min(page * PAGE_SIZE, totalCount);
-
-  function clearFilters() {
-    setSelectedGenre("");
-    setSelectedPlatform("");
-    setPage(1);
-  }
+  const failedCollections = [
+    genresError && "genres",
+    platformsError && "platforms",
+  ].filter(Boolean);
+  const filterError =
+    failedCollections.length > 0
+      ? `Could not load ${failedCollections.join(" and ")}. You can still browse games.`
+      : "";
 
   return (
     <div className="min-h-screen bg-[#0e1016] text-slate-100">
@@ -179,14 +69,8 @@ function App() {
           <FilterPanel
             genres={genres}
             onClear={clearFilters}
-            onGenreChange={(value) => {
-              setSelectedGenre(value);
-              setPage(1);
-            }}
-            onPlatformChange={(value) => {
-              setSelectedPlatform(value);
-              setPage(1);
-            }}
+            onGenreChange={handleGenreChange}
+            onPlatformChange={handlePlatformChange}
             platforms={platforms}
             selectedGenre={selectedGenre}
             selectedPlatform={selectedPlatform}
@@ -209,8 +93,7 @@ function App() {
                 <span className="mr-2 shrink-0">Sort by</span>
                 <SortingDropdown
                   ordering={ordering}
-                  setOrdering={setOrdering}
-                  setPage={setPage}
+                  onOrderingChange={handleOrderingChange}
                   sortOptions={sortOptions}
                 />
                 <RiArrowDownSLine
@@ -227,7 +110,7 @@ function App() {
             )}
 
             {error ? (
-              <ErrorMessage error={error} setReloadKey={setReloadKey} />
+              <ErrorMessage error={error} onRetry={retry} />
             ) : loading ? (
               <Skeleton />
             ) : games.length > 0 ? (
@@ -237,11 +120,7 @@ function App() {
                 ))}
               </div>
             ) : (
-              <Refresh
-                setSearchInput={setSearchInput}
-                setSearch={setSearch}
-                clearFilters={clearFilters}
-              />
+              <Refresh onClear={clearSearchAndFilters} />
             )}
 
             {!error && !loading && games.length > 0 && (

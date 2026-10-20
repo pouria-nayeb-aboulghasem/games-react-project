@@ -1,12 +1,10 @@
 import { RiGamepadLine } from "@remixicon/react";
 
 type RefreshProps = {
-  setSearchInput: React.Dispatch<React.SetStateAction<string>>;
-  setSearch: React.Dispatch<React.SetStateAction<string>>;
-  clearFilters: () => void;
+  onClear: () => void;
 };
 
-function Refresh({ setSearchInput, setSearch, clearFilters }: RefreshProps) {
+function Refresh({ onClear }: RefreshProps) {
   return (
     <div className="rounded-2xl border border-dashed border-white/10 px-6 py-16 text-center">
       <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-white/5 text-slate-400">
@@ -18,11 +16,7 @@ function Refresh({ setSearchInput, setSearch, clearFilters }: RefreshProps) {
       </p>
       <button
         className="mt-4 text-sm font-semibold text-violet-300 transition hover:text-violet-200"
-        onClick={() => {
-          setSearchInput("");
-          setSearch("");
-          clearFilters();
-        }}
+        onClick={onClear}
         type="button"
       >
         Clear search and filters

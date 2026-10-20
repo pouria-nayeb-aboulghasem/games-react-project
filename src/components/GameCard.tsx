@@ -45,8 +45,15 @@ function GameCard({ game }: GameCardProps) {
             <span>Release date unavailable</span>
           )}
           <span className="truncate text-right">
-            {game.platforms?.slice(0, 2).map(({ platform }) => platform.name).join(" · ") ||
-              "Multiple platforms"}
+            {game.platforms
+              ?.slice(0, 2)
+              .map(({ platform }) => platform.name)
+              .join(" · ") || "Multiple platforms"}
+            {game.platforms != null
+              ? game.platforms?.length > 2
+                ? " · ..."
+                : ""
+              : ""}
           </span>
         </div>
       </div>

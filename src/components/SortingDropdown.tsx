@@ -1,6 +1,5 @@
 type SortingDropdownProps = {
-  setOrdering: React.Dispatch<React.SetStateAction<string>>;
-  setPage: React.Dispatch<React.SetStateAction<number>>;
+  onOrderingChange: (value: string) => void;
   ordering: string;
   sortOptions: {
     label: string;
@@ -9,8 +8,7 @@ type SortingDropdownProps = {
 };
 
 function SortingDropdown({
-  setOrdering,
-  setPage,
+  onOrderingChange,
   ordering,
   sortOptions,
 }: SortingDropdownProps) {
@@ -18,10 +16,7 @@ function SortingDropdown({
     <select
       aria-label="Sort games"
       className="h-full min-w-0 flex-1 appearance-none bg-transparent text-xs font-semibold text-slate-200 outline-none"
-      onChange={(event) => {
-        setOrdering(event.target.value);
-        setPage(1);
-      }}
+      onChange={(event) => onOrderingChange(event.target.value)}
       value={ordering}
     >
       {sortOptions.map((option) => (
