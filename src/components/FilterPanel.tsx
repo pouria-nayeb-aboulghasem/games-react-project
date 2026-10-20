@@ -1,5 +1,7 @@
-import { RiCloseLine, RiGamepadLine, RiWindowsLine } from "@remixicon/react";
 import type { Genre, Platform } from "@/types";
+import GenresDropdown from "./GenresDropdown";
+import PlatformsDropdown from "./PlatformsDropdown";
+import ResetFilters from "./ResetFilters";
 
 type FilterPanelProps = {
   genres: Genre[];
@@ -24,71 +26,20 @@ function FilterPanel({
 
   return (
     <aside className="rounded-2xl border border-white/8 bg-[#151820] p-5">
-      {/* reset filters */}
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-white">Filters</h2>
-        {hasFilters && (
-          <button
-            className="inline-flex items-center gap-1 text-xs font-medium text-violet-300 transition hover:text-violet-200"
-            onClick={onClear}
-            type="button"
-          >
-            <RiCloseLine aria-hidden="true" className="size-4" />
-            Clear all
-          </button>
-        )}
-      </div>
-      {/* /reset filters */}
+      <ResetFilters hasFilters={hasFilters} onClear={onClear} />
 
       <div className="space-y-6">
-        {/* genre dropdown */}
-        <label className="block">
-          <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
-            <RiGamepadLine
-              aria-hidden="true"
-              className="size-4 text-violet-300"
-            />
-            Genre
-          </span>
-          <select
-            className="h-11 w-full appearance-none rounded-lg border border-white/10 bg-[#1d2029] px-3 text-sm text-slate-200 outline-none transition focus:border-violet-400/70"
-            onChange={(event) => onGenreChange(event.target.value)}
-            value={selectedGenre}
-          >
-            <option value="">All genres</option>
-            {genres.map((genre) => (
-              <option key={genre.id} value={genre.slug}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        {/* /genre dropdown */}
+        <GenresDropdown
+          onGenreChange={onGenreChange}
+          selectedGenre={selectedGenre}
+          genres={genres}
+        />
 
-        {/* platform dropdown */}
-        <label className="block">
-          <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
-            <RiWindowsLine
-              aria-hidden="true"
-              className="size-4 text-violet-300"
-            />
-            Platform
-          </span>
-          <select
-            className="h-11 w-full appearance-none rounded-lg border border-white/10 bg-[#1d2029] px-3 text-sm text-slate-200 outline-none transition focus:border-violet-400/70"
-            onChange={(event) => onPlatformChange(event.target.value)}
-            value={selectedPlatform}
-          >
-            <option value="">All platforms</option>
-            {platforms.map((platform) => (
-              <option key={platform.id} value={platform.id}>
-                {platform.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {/* /platform dropdown */}
+        <PlatformsDropdown
+          onPlatformChange={onPlatformChange}
+          selectedPlatform={selectedPlatform}
+          platforms={platforms}
+        />
       </div>
     </aside>
   );
